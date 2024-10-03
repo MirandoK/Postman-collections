@@ -1,0 +1,1941 @@
+{
+	"info": {
+		"_postman_id": "95e5e062-2134-48b5-bc62-fdf9658d7ed6",
+		"name": "Mirando_Kersman_jira_clone_comments",
+		"description": "1. Delete all your global variables\n    \n2. Open Postman Console for better understanding, what is happening in the background\n    \n3. Run the whole collection from the parent folder\n    \n4. All tests are in logical order, issues, comments and variables are created and deleted afterwards\n    \n5. 2 tests out of 47 are supposed to fail because of a bug in the API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "35135942"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Get authentication token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"pm.globals.set(\"token\", jsonData.authToken);\r",
+									"\r",
+									"pm.test(\"Retrieving project information was successful\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/authentication/guest",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"authentication",
+								"guest"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get project id into variable",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"pm.globals.set(\"project_id\", jsonData.project.id);\r",
+									"pm.globals.set(\"user_id1\", jsonData.project.users[0].id);\r",
+									"pm.globals.set(\"user_id2\", jsonData.project.users[1].id);\r",
+									"pm.globals.set(\"user_id3\", jsonData.project.users[2].id);\r",
+									"\r",
+									"pm.test(\"Retrieving project information was successful\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/project",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"project"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get current user id into variable",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let jsonData = pm.response.json();\r",
+									"pm.globals.set(\"current_user_id\", jsonData.currentUser.id);\r",
+									"\r",
+									"pm.test(\"Retrieving user information was successful\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/currentUser",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"currentUser"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "1. Create Comments",
+			"item": [
+				{
+					"name": "1.1 Create issue (prerequisite)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"pm.globals.set(\"issue_id\", jsonData.issue.id);\r",
+									"pm.globals.set(\"randomTitle\", jsonData.issue.title);\r",
+									"pm.globals.set(\"randomDescription\", jsonData.issue.description);\r",
+									"\r",
+									"pm.test(\"Issue creation was successful\", function () {\r",
+									"    pm.response.to.not.be.error;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Issue with random title \\\"\" + pm.globals.get(\"randomTitle\") + \"\\\" was created\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Information was saved correctly\", function () {\r",
+									"    pm.expect(jsonData.issue.title).to.eql(pm.globals.get(\"randomTitle\"));\r",
+									"    pm.expect(jsonData.issue.description).to.eql(pm.globals.get(\"randomDescription\"));\r",
+									"    pm.expect(jsonData.issue.type).to.eql(\"bug\");\r",
+									"    pm.expect(jsonData.issue.status).to.eql(\"done\");\r",
+									"    pm.expect(jsonData.issue.priority).to.eql(\"3\");\r",
+									"    pm.expect(jsonData.issue.createdAt).to.not.be.null;\r",
+									"    pm.expect(jsonData.issue.reporterId).to.eql(pm.globals.get(\"current_user_id\"));\r",
+									"    pm.expect(jsonData.issue.users[0].id).to.eql(pm.globals.get(\"user_id1\"));\r",
+									"    pm.expect(jsonData.issue.estimate).to.eql(null);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"type\": \"bug\",\r\n    \"title\": \"{{$randomPhrase}}\",\r\n    \"description\": \"{{$randomLoremSentences}}\",\r\n    \"reporterId\": {{current_user_id}},\r\n    \"priority\": \"3\",\r\n    \"status\": \"done\",\r\n    \"projectId\": {{project_id}},\r\n    \"users\": [\r\n        {\r\n            \"id\": {{user_id1}}\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/issues",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"issues"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.1.1 Check created issue",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Issue creation was successful\", function () {\r",
+									"    pm.response.to.not.be.error;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Issue with random title \\\"\" + pm.globals.get(\"randomTitle\") + \"\\\" was retrieved\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"There are no comments on the recently created issue\", function () {\r",
+									"    pm.expect(jsonData.issue.comments).to.be.empty;\r",
+									"    console.log(\"No comments on newly created issue\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/issues/{{issue_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"issues",
+								"{{issue_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.2 Add a comment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"pm.globals.set(\"issue_comment1\", jsonData.comment.body);\r",
+									"\r",
+									"pm.test(\"Comment creation was successful\", function () {\r",
+									"    pm.response.to.not.be.error;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Comment with contents \\\"\" + pm.globals.get(\"issue_comment1\") + \"\\\" was created\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"body\": \"This is the first comment\",\r\n\"issueId\": {{issue_id}},\r\n\"userId\": {{current_user_id}}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/comments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"comments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.3 Add another comment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"pm.globals.set(\"issue_comment2\", jsonData.comment.body);\r",
+									"\r",
+									"pm.test(\"Comment creation was successful\", function () {\r",
+									"    pm.response.to.not.be.error;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Another comment with contents \\\"\" + pm.globals.get(\"issue_comment2\") + \"\\\" was created\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"body\": \"This is the second comment\",\r\n\"issueId\": {{issue_id}},\r\n\"userId\": {{current_user_id}}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/comments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"comments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.4 Verify both comments are visible",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"\r",
+									"pm.test(\"There are two comments on the recently created issue\", function () {\r",
+									"    pm.response.to.not.be.error;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.expect(jsonData.issue.comments).to.not.be.empty;\r",
+									"    pm.expect(jsonData.issue.comments).to.have.lengthOf(2);\r",
+									"    \r",
+									"    console.log(\"There are 2 comments on newly created issue\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Comments are correct\", function () {\r",
+									"    pm.expect(jsonData.issue.comments[0].body).to.eql(pm.globals.get(\"issue_comment1\"));\r",
+									"    pm.expect(jsonData.issue.comments[1].body).to.eql(pm.globals.get(\"issue_comment2\"));\r",
+									"    \r",
+									"    console.log(\"First comment: \" + pm.globals.get(\"issue_comment1\"));\r",
+									"    console.log(\"Second comment: \" + pm.globals.get(\"issue_comment2\"));\r",
+									"});\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/issues/{{issue_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"issues",
+								"{{issue_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.5 Add comment (body missing)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"\r",
+									"pm.test(\"Comment creation was not successful\", function () {\r",
+									"    pm.response.to.be.error;\r",
+									"    pm.response.to.have.status(400);\r",
+									"    pm.expect(jsonData.error.code).to.eql(\"BAD_USER_INPUT\");\r",
+									"    pm.expect(jsonData.error.data.fields.body).to.eql(\"This field is required\");\r",
+									"    console.log(\"Impossible to save comment without body, test passed\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"issueId\": {{issue_id}},\r\n\"userId\": {{current_user_id}}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/comments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"comments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.5.1 Add comment (issue_id missing) - BUG",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"//bug in the API, right now this test is expected to fail\r",
+									"pm.test(\"Comment creation was not successful\", function () {\r",
+									"    pm.response.to.be.error;\r",
+									"    pm.response.to.have.status(400);\r",
+									"    pm.expect(jsonData.error.code).to.eql(\"BAD_USER_INPUT\");\r",
+									"    pm.expect(jsonData.error.data.fields.body).to.eql(\"This field is required\");\r",
+									"    console.log(\"Impossible to save comment without issue_id, test passed\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"body\": \"This is another comment\",\r\n\"userId\": {{current_user_id}}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/comments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"comments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.5.2 Add comment (user_id missing) - BUG",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"//bug in the API, right now this test is expected to fail\r",
+									"pm.test(\"Comment creation was not successful\", function () {\r",
+									"    pm.response.to.be.error;\r",
+									"    pm.response.to.have.status(400);\r",
+									"    pm.expect(jsonData.error.code).to.eql(\"BAD_USER_INPUT\");\r",
+									"    pm.expect(jsonData.error.data.fields.body).to.eql(\"This field is required\");\r",
+									"    console.log(\"Impossible to save comment without user_id, test passed\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"body\": \"This is another comment\",\r\n\"issueId\": {{issue_id}}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/comments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"comments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.6 Add comment (special symbols)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"pm.globals.set(\"issue_comment3\", jsonData.comment.body);\r",
+									"\r",
+									"pm.test(\"Comment creation was successful\", function () {\r",
+									"    pm.response.to.not.be.error;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Comment with symbols \\\"\" + pm.globals.get(\"issue_comment3\") + \"\\\" was created\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"body\": \"¤%&/¤\",\r\n\"issueId\": {{issue_id}},\r\n\"userId\": {{current_user_id}}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/comments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"comments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.6.1 Add comment (arabic)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"pm.globals.set(\"issue_comment4\", jsonData.comment.body);\r",
+									"\r",
+									"pm.test(\"Comment creation was successful\", function () {\r",
+									"    pm.response.to.not.be.error;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Comment in arabic \\\"\" + pm.globals.get(\"issue_comment4\") + \"\\\" was created\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"body\": \"العصبة ضرب قد. وباءت الأمريكي\",\r\n\"issueId\": {{issue_id}},\r\n\"userId\": {{current_user_id}}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/comments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"comments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.6.2 Add comment (cyrillic)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"pm.globals.set(\"issue_comment5\", jsonData.comment.body);\r",
+									"\r",
+									"pm.test(\"Comment creation was successful\", function () {\r",
+									"    pm.response.to.not.be.error;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Comment in cyrillic \\\"\" + pm.globals.get(\"issue_comment5\") + \"\\\" was created\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"body\": \"Сегодня прекрасная погода для прогулки в парке\",\r\n\"issueId\": {{issue_id}},\r\n\"userId\": {{current_user_id}}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/comments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"comments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.6.3 Verify special comments visibility",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"pm.test(\"There are five comments on the recently created issue\", function () {\r",
+									"    pm.response.to.not.be.error;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.expect(jsonData.issue.comments).to.not.be.empty;\r",
+									"    pm.expect(jsonData.issue.comments).to.have.lengthOf(5);\r",
+									"    console.log(\"There are 5 comments on the newly created issue\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Comments are correct\", function () {\r",
+									"    //Previous comments:\r",
+									"    pm.expect(jsonData.issue.comments[0].body).to.eql(pm.globals.get(\"issue_comment1\"));\r",
+									"    pm.expect(jsonData.issue.comments[1].body).to.eql(pm.globals.get(\"issue_comment2\"));\r",
+									"    //Special character comments:\r",
+									"    pm.expect(jsonData.issue.comments[2].body).to.eql(pm.globals.get(\"issue_comment3\"));\r",
+									"    pm.expect(jsonData.issue.comments[3].body).to.eql(pm.globals.get(\"issue_comment4\"));\r",
+									"    pm.expect(jsonData.issue.comments[4].body).to.eql(pm.globals.get(\"issue_comment5\"));\r",
+									"    console.log(\"Comments match\");\r",
+									"});\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/issues/{{issue_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"issues",
+								"{{issue_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.7 Cleanup - delete issue & variables",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"\r",
+									"pm.test(\"Issue deletion was successful\", function () {\r",
+									"    pm.response.to.not.be.error;\r",
+									"    pm.response.to.have.status(200);   \r",
+									"});\r",
+									"\r",
+									"pm.globals.unset(\"issue_id\");\r",
+									"pm.globals.unset(\"randomTitle\");\r",
+									"pm.globals.unset(\"randomDescription\");\r",
+									"pm.globals.unset(\"issue_comment1\");\r",
+									"pm.globals.unset(\"issue_comment2\");\r",
+									"pm.globals.unset(\"issue_comment3\");\r",
+									"pm.globals.unset(\"issue_comment4\");\r",
+									"pm.globals.unset(\"issue_comment5\");\r",
+									"\r",
+									"\r",
+									"console.log(\"Issue with comments and variables deleted\");\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/issues/{{issue_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"issues",
+								"{{issue_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Update Comments",
+			"item": [
+				{
+					"name": "Create issue (prerequisite)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"pm.globals.set(\"issue_id\", jsonData.issue.id);\r",
+									"pm.globals.set(\"randomTitle\", jsonData.issue.title);\r",
+									"pm.globals.set(\"randomDescription\", jsonData.issue.description);\r",
+									"\r",
+									"pm.test(\"Issue creation was successful\", function () {\r",
+									"    pm.response.to.not.be.error;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Issue with random title \\\"\" + pm.globals.get(\"randomTitle\") + \"\\\" was created\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Information was saved correctly\", function () {\r",
+									"    pm.expect(jsonData.issue.title).to.eql(pm.globals.get(\"randomTitle\"));\r",
+									"    pm.expect(jsonData.issue.description).to.eql(pm.globals.get(\"randomDescription\"));\r",
+									"    pm.expect(jsonData.issue.type).to.eql(\"bug\");\r",
+									"    pm.expect(jsonData.issue.status).to.eql(\"done\");\r",
+									"    pm.expect(jsonData.issue.priority).to.eql(\"3\");\r",
+									"    pm.expect(jsonData.issue.createdAt).to.not.be.null;\r",
+									"    pm.expect(jsonData.issue.reporterId).to.eql(pm.globals.get(\"current_user_id\"));\r",
+									"    pm.expect(jsonData.issue.users[0].id).to.eql(pm.globals.get(\"user_id1\"));\r",
+									"    pm.expect(jsonData.issue.estimate).to.eql(null);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"type\": \"bug\",\r\n    \"title\": \"{{$randomPhrase}}\",\r\n    \"description\": \"{{$randomLoremSentences}}\",\r\n    \"reporterId\": {{current_user_id}},\r\n    \"priority\": \"3\",\r\n    \"status\": \"done\",\r\n    \"projectId\": {{project_id}},\r\n    \"users\": [\r\n        {\r\n            \"id\": {{user_id1}}\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/issues",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"issues"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check created issue",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Issue creation was successful\", function () {\r",
+									"    pm.response.to.not.be.error;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Issue with random title \\\"\" + pm.globals.get(\"randomTitle\") + \"\\\" was retrieved\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"There are no comments on the recently created issue\", function () {\r",
+									"    pm.expect(jsonData.issue.comments).to.be.empty;\r",
+									"    console.log(\"No comments on newly created issue\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/issues/{{issue_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"issues",
+								"{{issue_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.1 Create a comment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"pm.globals.set(\"comment_id\", jsonData.comment.id);\r",
+									"pm.globals.set(\"original_comment\", jsonData.comment.body);\r",
+									"\r",
+									"\r",
+									"pm.test(\"Comment creation was successful\", function () {\r",
+									"    pm.response.to.not.be.error;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Comment with contents \\\"\" + pm.globals.get(\"original_comment\") + \"\\\" was created\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"body\": \"This is the assignment 2.1 comment\",\r\n\"issueId\": {{issue_id}},\r\n\"userId\": {{current_user_id}}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/comments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"comments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.1.1 Update a comment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"pm.globals.set(\"updated_comment\", jsonData.comment.body);\r",
+									"\r",
+									"\r",
+									"pm.test(\"Comment update was successful\", function () {\r",
+									"    pm.response.to.not.be.error;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    //Check correct comment is replaced and it's value is correct:\r",
+									"    pm.expect(jsonData.comment.id).to.eql(pm.globals.get(\"comment_id\"));\r",
+									"    pm.expect(jsonData.comment.body).to.not.eql(pm.globals.get(\"original_comment\"));\r",
+									"    pm.expect(jsonData.comment.body).to.eql(pm.globals.get(\"updated_comment\"));\r",
+									"    \r",
+									"    console.log(\"Comment contents updated to  \\\"\" + pm.globals.get(\"updated_comment\"));\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"body\": \"This is the updated comment in assignment 2.1\",\r\n\"issueId\": {{issue_id}},\r\n\"userId\": {{current_user_id}}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/comments/{{comment_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"comments",
+								"{{comment_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.1.2 Update comment  (non-existing comment_id)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"\r",
+									"pm.test(\"Updating non-existent comment is not possible\", function () {\r",
+									"    pm.response.to.be.error;\r",
+									"    pm.response.to.have.status(404);\r",
+									"    pm.expect(jsonData.error.message).to.eql(\"Comment not found.\");\r",
+									"    console.log(\"Comment not found, test passed\")\r",
+									"});\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"body\": \"Comment with non-existing id\",\r\n\"issueId\": {{issue_id}},\r\n\"userId\": {{current_user_id}}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/comments/1234567890",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"comments",
+								"1234567890"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.1.3 Check updated comment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Comment update was successful\", function () {\r",
+									"    pm.response.to.not.be.error;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    //Check correct comment is replaced and value is correct:\r",
+									"    pm.expect(jsonData.issue.comments[0].id).to.eql(pm.globals.get(\"comment_id\"));\r",
+									"    pm.expect(jsonData.issue.comments[0].body).to.not.eql(pm.globals.get(\"original_comment\"));\r",
+									"    pm.expect(jsonData.issue.comments[0].body).to.eql(pm.globals.get(\"updated_comment\"));\r",
+									"    \r",
+									"    console.log(\"Correct comment is retrieved: \\\"\" + pm.globals.get(\"updated_comment\") + \"\\\"\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/issues/{{issue_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"issues",
+								"{{issue_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.2 Delete created comment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"\r",
+									"pm.test(\"Comment deletion was successful\", function () {\r",
+									"    pm.response.to.not.be.error;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    \r",
+									"    console.log(\"Comment deleted\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/comments/{{comment_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"comments",
+								"{{comment_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.2.1 Validate comment deletion",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"\r",
+									"pm.test(\"Comment deletion succeeded\", function () {\r",
+									"    pm.response.to.not.be.error;\r",
+									"    pm.response.to.have.status(200)\r",
+									"    pm.expect(jsonData.issue.comments).to.be.empty;\r",
+									"    console.log(\"No comments on created issue\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/issues/{{issue_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"issues",
+								"{{issue_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.2.2 Update deleted comment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Deleted comment update is not possible\", function () {\r",
+									"    pm.response.to.be.error;\r",
+									"    pm.response.to.have.status(404);\r",
+									"    \r",
+									"    console.log(\"Impossible to update deleted comment, test passed\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"body\": \"Trying to update deleted comment\",\r\n\"issueId\": {{issue_id}},\r\n\"userId\": {{current_user_id}}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/comments{{comment_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"comments{{comment_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.2.3 Delete comment (no auth)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"\r",
+									"pm.test(\"Request not successful\", function () {\r",
+									"    pm.response.to.be.error;\r",
+									"    pm.response.to.have.status(401);\r",
+									"    pm.expect(jsonData.error.code).to.eql(\"INVALID_TOKEN\")\r",
+									"    console.log(\"Impossible to delete comment without being authorized\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/comments/{{comment_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"comments",
+								"{{comment_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create a comment (2.3 prerequisite)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"pm.globals.set(\"comment_id\", jsonData.comment.id);\r",
+									"pm.globals.set(\"original_comment\", jsonData.comment.body);\r",
+									"\r",
+									"\r",
+									"pm.test(\"Comment creation was successful\", function () {\r",
+									"    pm.response.to.not.be.error;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Comment with contents \\\"\" + pm.globals.get(\"original_comment\") + \"\\\" was created\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"body\": \"Verifying mandatory fields\",\r\n\"issueId\": {{issue_id}},\r\n\"userId\": {{current_user_id}}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/comments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"comments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.3 Verify mandatory fields (empty body)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"\r",
+									"//As it's a minor usability bug that does not affect functionality, asserting success:\r",
+									"pm.test(\"Empty update successful\", function () {\r",
+									"    pm.response.to.not.be.error;\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Comment remains unchanged\", function () {\r",
+									"pm.expect(jsonData.comment.id).to.eql(pm.globals.get(\"comment_id\"));\r",
+									"pm.expect(jsonData.comment.body).to.eql(pm.globals.get(\"original_comment\"));\r",
+									"pm.expect(jsonData.comment.issueId).to.eql(pm.globals.get(\"issue_id\"));\r",
+									"pm.expect(jsonData.comment.userId).to.eql(pm.globals.get(\"current_user_id\"));\r",
+									"console.log(\"Comment was not changed\")\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/comments/{{comment_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"comments",
+								"{{comment_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.3.1 Verify mandatory fields (userId missing)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"\r",
+									"//As it's a minor usability bug that does not affect functionality, asserting success:\r",
+									"pm.test(\"Update successful\", function () {\r",
+									"    pm.response.to.not.be.error;\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Comment updated without userId\", function () {\r",
+									"pm.expect(jsonData.comment.id).to.eql(pm.globals.get(\"comment_id\"));\r",
+									"pm.expect(jsonData.comment.body).to.eql(pm.globals.get(\"updated_comment\"));\r",
+									"pm.expect(jsonData.comment.issueId).to.eql(pm.globals.get(\"issue_id\"));\r",
+									"pm.expect(jsonData.comment.userId).to.eql(pm.globals.get(\"current_user_id\"));\r",
+									"console.log(\"Comment is updated without specifying user_id\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"body\": \"{{updated_comment}}\",\r\n    \"issueId\": {{issue_id}}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/comments/{{comment_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"comments",
+								"{{comment_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.3.2 Verify mandatory fields (issueId missing)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"\r",
+									"//As it's a minor usability bug that does not affect functionality, asserting success:\r",
+									"pm.test(\"Update successful\", function () {\r",
+									"    pm.response.to.not.be.error;\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Comment updated without issueId\", function () {\r",
+									"pm.expect(jsonData.comment.id).to.eql(pm.globals.get(\"comment_id\"));\r",
+									"pm.expect(jsonData.comment.body).to.eql(pm.globals.get(\"original_comment\"));\r",
+									"pm.expect(jsonData.comment.issueId).to.eql(pm.globals.get(\"issue_id\"));\r",
+									"pm.expect(jsonData.comment.userId).to.eql(pm.globals.get(\"current_user_id\"));\r",
+									"console.log(\"Comment is updated without specifying issue_id\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"body\": \"{{original_comment}}\",\r\n    \"userId\": {{current_user_id}}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/comments/{{comment_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"comments",
+								"{{comment_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.3.3 Verify mandatory fields (no body value)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json()\r",
+									"\r",
+									"pm.test(\"Request not successful\", function () {\r",
+									"    pm.response.to.be.error;\r",
+									"    pm.response.to.have.status(400);\r",
+									"    pm.expect(jsonData.error.code).to.eql(\"BAD_USER_INPUT\");\r",
+									"    pm.expect(jsonData.error.data.fields.body).to.eql(\"This field is required\");\r",
+									"   \r",
+									"console.log(\"Comment is not updated with body with empty value\");\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"body\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/comments/{{comment_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"comments",
+								"{{comment_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.4 Cleanup - delete issue & variables",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"\r",
+									"pm.test(\"Issue deletion was successful\", function () {\r",
+									"    pm.response.to.not.be.error;\r",
+									"    pm.response.to.have.status(200);   \r",
+									"});\r",
+									"\r",
+									"pm.globals.unset(\"issue_id\");\r",
+									"pm.globals.unset(\"randomTitle\");\r",
+									"pm.globals.unset(\"randomDescription\");\r",
+									"pm.globals.unset(\"comment_id\");\r",
+									"pm.globals.unset(\"original_comment\");\r",
+									"pm.globals.unset(\"updated_comment\");\r",
+									"\r",
+									"\r",
+									"console.log(\"Issue with comments and variables deleted\");\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/issues/{{issue_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"issues",
+								"{{issue_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Complex requests, for practicing",
+			"item": [
+				{
+					"name": "Create issue (prerequisite)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"pm.globals.set(\"issue_id\", jsonData.issue.id);\r",
+									"pm.globals.set(\"randomTitle\", jsonData.issue.title);\r",
+									"pm.globals.set(\"randomDescription\", jsonData.issue.description);\r",
+									"\r",
+									"pm.test(\"Issue creation was successful\", function () {\r",
+									"    pm.response.to.not.be.error;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Issue with random title \\\"\" + pm.globals.get(\"randomTitle\") + \"\\\" was created\");\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Information was saved correctly\", function () {\r",
+									"    pm.expect(jsonData.issue.title).to.eql(pm.globals.get(\"randomTitle\"));\r",
+									"    pm.expect(jsonData.issue.description).to.eql(pm.globals.get(\"randomDescription\"));\r",
+									"    pm.expect(jsonData.issue.type).to.eql(\"bug\");\r",
+									"    pm.expect(jsonData.issue.status).to.eql(\"done\");\r",
+									"    pm.expect(jsonData.issue.priority).to.eql(\"3\");\r",
+									"    pm.expect(jsonData.issue.createdAt).to.not.be.null;\r",
+									"    pm.expect(jsonData.issue.reporterId).to.eql(pm.globals.get(\"current_user_id\"));\r",
+									"    pm.expect(jsonData.issue.users[0].id).to.eql(pm.globals.get(\"user_id1\"));\r",
+									"    pm.expect(jsonData.issue.estimate).to.eql(null);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"type\": \"bug\",\r\n    \"title\": \"{{$randomPhrase}}\",\r\n    \"description\": \"{{$randomLoremSentences}}\",\r\n    \"reporterId\": {{current_user_id}},\r\n    \"priority\": \"3\",\r\n    \"status\": \"done\",\r\n    \"projectId\": {{project_id}},\r\n    \"users\": [\r\n        {\r\n            \"id\": {{user_id1}}\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/issues",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"issues"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.1 (POST+PUT) Create & update comment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"let updatedComment = \"Updated the complex request comment\";\r",
+									"\r",
+									"\r",
+									"pm.globals.set(\"comment_id\", jsonData.comment.id);\r",
+									"pm.globals.set(\"original_comment\", jsonData.comment.body);\r",
+									"pm.globals.set(\"updated_comment\", updatedComment);\r",
+									"\r",
+									"\r",
+									"pm.test(\"Comment creation was successful\", function () {\r",
+									"    pm.response.to.not.be.error;\r",
+									"    pm.response.to.have.status(200);\r",
+									"    console.log(\"Comment with contents \\\"\" + pm.globals.get(\"original_comment\") + \"\\\" was created\");\r",
+									"});\r",
+									"\r",
+									"pm.sendRequest({\r",
+									"    url: pm.collectionVariables.get(\"base_url\") + '/comments/' + pm.globals.get(\"comment_id\"),\r",
+									"    method: 'PUT',\r",
+									"    header: {\r",
+									"        'Content-Type': 'application/json',\r",
+									"        'Authorization': 'Bearer ' + pm.globals.get(\"token\"),\r",
+									"    },\r",
+									"    body: {\r",
+									"        mode: 'raw',\r",
+									"        raw: JSON.stringify({\r",
+									"            \"body\": pm.globals.get(\"updated_comment\")\r",
+									"        })\r",
+									"    }\r",
+									"}, function (error, response) {\r",
+									"    if (error) {\r",
+									"        console.log(error);\r",
+									"    } else {\r",
+									"        console.log(\"Comment contents updated to \\\"\" + pm.globals.get('updated_comment') + \"\\\" successfully\");\r",
+									"    }\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"body\": \"Practicing the complex request\",\r\n\"issueId\": {{issue_id}},\r\n\"userId\": {{current_user_id}}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/comments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"comments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.2 (GET+DELETE) Validate & delete comment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let jsonData = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Comment retrieval was successful\", function () {\r",
+									"    pm.response.to.not.be.error;\r",
+									"    pm.response.to.have.status(200);\r",
+									"\r",
+									"    pm.expect(jsonData.issue.comments).to.not.be.empty;\r",
+									"    pm.expect(jsonData.issue.comments).to.have.lengthOf(1); \r",
+									"\r",
+									"    pm.expect(jsonData.issue.comments[0].body).to.eql(pm.globals.get(\"updated_comment\"));\r",
+									"    pm.expect(jsonData.issue.comments[0].body).to.not.eql(pm.globals.get(\"original_comment\"));\r",
+									"\r",
+									"    console.log(\"Comment update verified: \\\"\" + pm.globals.get(\"updated_comment\") + \"\\\"\");\r",
+									"\r",
+									"    deleteComment();\r",
+									"});\r",
+									"\r",
+									"// Function to delete only the comment\r",
+									"function deleteComment() {\r",
+									"    pm.sendRequest({\r",
+									"        url: pm.collectionVariables.get(\"base_url\") + '/comments/' + pm.globals.get(\"comment_id\"),  // Corrected to delete comment\r",
+									"        method: 'DELETE',\r",
+									"        header: {\r",
+									"            'Authorization': 'Bearer ' + pm.globals.get(\"token\"),\r",
+									"        }\r",
+									"    }, function (error, response) {\r",
+									"        if (error) {\r",
+									"            console.log(\"Delete request failed: \", error);\r",
+									"        } else {\r",
+									"            let deleteResponse = response.json();\r",
+									"\r",
+									"            pm.test(\"Comment deletion was successful\", function () {\r",
+									"                pm.expect(response).to.have.status(200);\r",
+									"                console.log(\"Comment with id: \\\"\" + pm.globals.get(\"comment_id\") + \"\\\" has been successfully deleted\");\r",
+									"            });\r",
+									"\r",
+									"            // Clearing the variables after comment deletion\r",
+									"            pm.globals.unset(\"comment_id\");\r",
+									"            pm.globals.unset(\"original_comment\");\r",
+									"            pm.globals.unset(\"updated_comment\");\r",
+									"\r",
+									"            console.log(\"Global variables cleared after comment deletion.\");\r",
+									"        }\r",
+									"    });\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/issues/{{issue_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"issues",
+								"{{issue_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.3 Cleanup - delete issue",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"\r",
+									"\r",
+									"pm.test(\"Issue deletion was successful\", function () {\r",
+									"    pm.response.to.not.be.error;\r",
+									"    pm.response.to.have.status(200);   \r",
+									"});\r",
+									"\r",
+									"pm.globals.unset(\"issue_id\");\r",
+									"pm.globals.unset(\"randomTitle\");\r",
+									"pm.globals.unset(\"randomDescription\");\r",
+									"\r",
+									"console.log(\"Issue with comments and variables deleted\");\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/issues/{{issue_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"issues",
+								"{{issue_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://jira-api.ivorreic.com",
+			"type": "string"
+		}
+	]
+}
